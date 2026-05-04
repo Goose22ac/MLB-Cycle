@@ -10,23 +10,28 @@
       text-align: center;
       padding: 40px;
     }
-    h1 {
-      color: #4fc3f7;
-    }
+
     input {
       padding: 10px;
       width: 300px;
-      margin: 10px;
     }
-    button {
-      padding: 10px 20px;
-      background: #4fc3f7;
-      border: none;
+
+    .suggestions {
+      background: white;
+      color: black;
+      width: 300px;
+      margin: auto;
+      text-align: left;
+      border-radius: 5px;
+    }
+
+    .suggestions div {
+      padding: 8px;
       cursor: pointer;
-      font-weight: bold;
     }
-    .pick {
-      margin: 15px;
+
+    .suggestions div:hover {
+      background: #eee;
     }
   </style>
 </head>
@@ -36,45 +41,43 @@
 <h1>MLB Cycle</h1>
 <p>Pick players for today's hits</p>
 
-<div class="pick">
+<div>
   <h3>Home Run</h3>
-  <input id="hr" placeholder="Enter player name">
+  <input id="hr" oninput="searchPlayers(this.value, 'hr')" placeholder="Start typing a player...">
+  <div id="hr-suggestions" class="suggestions"></div>
 </div>
-
-<div class="pick">
-  <h3>Double</h3>
-  <input id="double" placeholder="Enter player name">
-</div>
-
-<div class="pick">
-  <h3>Triple</h3>
-  <input id="triple" placeholder="Enter player name">
-</div>
-
-<div class="pick">
-  <h3>Single</h3>
-  <input id="single" placeholder="Enter player name">
-</div>
-
-<br>
-
-<button onclick="submitPicks()">Submit Picks</button>
-
-<p id="result"></p>
 
 <script>
-function submitPicks() {
-  const picks = {
-    hr: document.getElementById("hr").value,
-    double: document.getElementById("double").value,
-    triple: document.getElementById("triple").value,
-    single: document.getElementById("single").value
-  };
+let players = [];
 
-  console.log("User Picks:", picks);
+// Fetch MLB players
+fetch("https://statsapi.mlb.com/api/v1/sports/1/players?season=2024")
+  .then(res => res.json())
+  .then(data => {
+    players = data.people;
+    console.log("Players loaded:", players.length);
+  });
 
-  document.getElementById("result").innerText =
-    "Picks submitted! (We’ll score them later)";
+// Search function
+function searchPlayers(query, type) {
+  const box = document.getElementById(type + "-suggestions");
+  box.innerHTML = "";
+
+  if (!query) return;
+
+  const results = players
+    .filter(p => p.fullName.toLowerCase().includes(query.toLowerCase()))
+    .slice(0, 5);
+
+  results.forEach(player => {
+    const div = document.createElement("div");
+    div.innerText = player.fullName + " (" + player.currentTeam?.name + ")";
+    div.onclick = () => {
+      document.getElementById(type).value = player.fullName;
+      box.innerHTML = "";
+    };
+    box.appendChild(div);
+  });
 }
 </script>
 
