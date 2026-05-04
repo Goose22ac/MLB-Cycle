@@ -115,11 +115,71 @@ let players = [];
         const name = players[id].person.fullName;
 
         // SCORING RULES (simple version)
-        if (name === picks.single && p.hits >= 1) totalScore += 10;
-        if (name === picks.double && p.doubles >= 1) totalScore += 20;
-        if (name === picks.triple && p.triples >= 1) totalScore += 30;
-        if (name === picks.hr && p.homeRuns >= 1) totalScore += 40;
-        if (name === picks.walk && p.baseOnBalls >= 1) totalScore += 5;
+        function checkTeamStat(players, statKey) {
+  let found = false;
+
+  for (let id in players) {
+    const p = players[id].stats?.batting;
+    if (!p) continue;
+    if (p[statKey] > 0) {
+      found = true;
+      break;
+    }
+  }
+
+  return found;
+}
+
+function checkPlayer(players, playerName, statKey) {
+  for (let id in players) {
+    const p = players[id].stats?.batting;
+    if (!p) continue;
+
+    const name = players[id].person.fullName;
+
+    if (name === playerName && p[statKey] > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// scoring map
+const scoring = [
+  { key: "hits", pick: picks.single, full: 10, partial: 3 },
+  { key: "doubles", pick: picks.double, full: 20, partial: 6 },
+  { key: "triples", pick: picks.triple, full: 30, partial: 10 },
+  { key: "homeRuns", pick: picks.hr, full: 40, partial: 15 },
+  { key: "baseOnBalls", pick: picks.walk, full: 5, partial: 2 }
+];
+
+for (let game of games) {
+  const gamePk = game.gamePk;
+
+  const boxRes = await fetch(
+    `https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`
+  );
+  const boxData = await boxRes.json();
+
+  const teams = boxData.teams;
+
+  for (let side of ["away", "home"]) {
+    const players = teams[side].players;
+
+    for (let rule of scoring) {
+      const playerHit = checkPlayer(players, rule.pick, rule.key);
+
+      if (playerHit) {
+        totalScore += rule.full;
+      } else {
+        const teamHit = checkTeamStat(players, rule.key);
+        if (teamHit) {
+          totalScore += rule.partial;
+        }
+      }
+    }
+  }
+}
       }
     }
   }
