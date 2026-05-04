@@ -63,9 +63,69 @@
 <input id="walk" oninput="searchPlayers(this.value, 'walk')" placeholder="Start typing...">
 <div id="walk-suggestions" class="suggestions"></div>
 
+<br><br>
+<button onclick="scorePicks()">Score My Picks</button>
+
+<h2 id="score">Score: --</h2>
+  
 <script>
 let players = [];
 
+  async function scorePicks() {
+  const picks = {
+    single: document.getElementById("single").value,
+    double: document.getElementById("double").value,
+    triple: document.getElementById("triple").value,
+    hr: document.getElementById("hr").value,
+    walk: document.getElementById("walk").value
+  };
+
+  let totalScore = 0;
+
+  // Get today's games
+  const today = new Date().toISOString().split("T")[0];
+
+  const scheduleRes = await fetch(
+    `https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${today}`
+  );
+  const scheduleData = await scheduleRes.json();
+
+  const games = scheduleData.dates?.[0]?.games || [];
+
+  // Loop through games and get boxscores
+  for (let game of games) {
+    const gamePk = game.gamePk;
+
+    const boxRes = await fetch(
+      `https://statsapi.mlb.com/api/v1/game/${gamePk}/boxscore`
+    );
+    const boxData = await boxRes.json();
+
+    const teams = boxData.teams;
+
+    // Check both teams
+    for (let side of ["away", "home"]) {
+      const players = teams[side].players;
+
+      for (let id in players) {
+        const p = players[id].stats?.batting;
+
+        if (!p) continue;
+
+        const name = players[id].person.fullName;
+
+        // SCORING RULES (simple version)
+        if (name === picks.single && p.hits >= 1) totalScore += 10;
+        if (name === picks.double && p.doubles >= 1) totalScore += 20;
+        if (name === picks.triple && p.triples >= 1) totalScore += 30;
+        if (name === picks.hr && p.homeRuns >= 1) totalScore += 40;
+        if (name === picks.walk && p.baseOnBalls >= 1) totalScore += 5;
+      }
+    }
+  }
+
+  document.getElementById("score").innerText = `Score: ${totalScore}`;
+}
 // Fetch MLB players
 fetch("https://statsapi.mlb.com/api/v1/sports/1/players?season=2024")
   .then(res => res.json())
