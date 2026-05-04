@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MLB Cycle</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0b1c2c;
+      color: white;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 {
+      color: #4fc3f7;
+    }
+    input {
+      padding: 10px;
+      width: 300px;
+      margin: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #4fc3f7;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .pick {
+      margin: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>MLB Cycle</h1>
+<p>Pick players for today's hits</p>
+
+<div class="pick">
+  <h3>Home Run</h3>
+  <input id="hr" placeholder="Enter player name">
+</div>
+
+<div class="pick">
+  <h3>Double</h3>
+  <input id="double" placeholder="Enter player name">
+</div>
+
+<div class="pick">
+  <h3>Triple</h3>
+  <input id="triple" placeholder="Enter player name">
+</div>
+
+<div class="pick">
+  <h3>Single</h3>
+  <input id="single" placeholder="Enter player name">
+</div>
+
+<br>
+
+<button onclick="submitPicks()">Submit Picks</button>
+
+<p id="result"></p>
+
+<script>
+function submitPicks() {
+  const picks = {
+    hr: document.getElementById("hr").value,
+    double: document.getElementById("double").value,
+    triple: document.getElementById("triple").value,
+    single: document.getElementById("single").value
+  };
+
+  console.log("User Picks:", picks);
+
+  document.getElementById("result").innerText =
+    "Picks submitted! (We’ll score them later)";
+}
+</script>
+
+</body>
+</html>
